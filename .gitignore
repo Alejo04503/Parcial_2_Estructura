@@ -1,0 +1,15 @@
+# Java compilado
+out/
+bin/
+*.class
+*.jar
+
+# IDE y sistema operativo
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Archivos temporales
+*.log
