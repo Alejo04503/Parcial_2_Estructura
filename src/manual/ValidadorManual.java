@@ -1,12 +1,143 @@
 package manual;
+
 import dominio.Ficha;
+import dominio.TipoFicha;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 public final class ValidadorManual {
     public String ejecutar(List<Ficha> entrada) {
-        // TODO: transferir entrada a ListaFichas.
-        // TODO: validar anidamiento con PilaSimbolos.
-        // TODO: encolar y resolver pistas con ColaPistas.
-        // TODO: devolver informe con mensaje, traza o primer error.
-        throw new UnsupportedOperationException("Completar validador manual");
+        StringBuilder salida = new StringBuilder();
+        ListaFichas lista = new ListaFichas();
+
+        salida.append("=== VERSION MANUAL ===\n");
+        salida.append("FASE 1. Cargar lista enlazada\n");
+        for (Ficha ficha : entrada) {
+            lista.agregar(ficha);
+            salida.append("INSERTAR LISTA: ").append(ficha.getId())
+                    .append(" en posición ").append(ficha.getPosicion()).append("\n");
+        }
+        salida.append("RECORRIDO LISTA: ");
+        for (int i = 0; i < lista.tamanio(); i++) {
+            if (i > 0) salida.append(" -> ");
+            salida.append(lista.obtener(i).getId());
+        }
+        salida.append("\n");
+
+        salida.append("FASE 2. Validar delimitadores con pila\n");
+        PilaSimbolos pila = new PilaSimbolos();
+        for (int i = 0; i < lista.tamanio(); i++) {
+            Ficha ficha = lista.obtener(i);
+            if (ficha.getTipo() == TipoFicha.ABRE) {
+                pila.apilar(ficha.getValor());
+                salida.append("APILAR ").append(ficha.getValor()).append(" [")
+                        .append(ficha.getId()).append("]\n");
+            } else if (ficha.getTipo() == TipoFicha.CIERRA) {
+                String esperado = parejaApertura(ficha.getValor());
+                String tope = pila.consultar();
+                salida.append("CONSULTAR PILA: ").append(tope == null ? "vacía" : tope).append("\n");
+                if (tope == null) {
+                    return error(salida, ficha, "cierre " + ficha.getValor()
+                            + " sin apertura correspondiente.");
+                }
+                if (!tope.equals(esperado)) {
+                    return error(salida, ficha, "se esperaba " + parejaCierre(tope)
+                            + " porque " + tope + " está en el tope.");
+                }
+                pila.retirar();
+                salida.append("RETIRAR ").append(tope).append(" [")
+                        .append(ficha.getId()).append("]\n");
+            }
+        }
+        if (!pila.estaVacia()) {
+            String abierto = pila.consultar();
+            return error(salida, null, "apertura " + abierto + " sin cierre correspondiente.");
+        }
+        salida.append("PILA VACÍA: delimitadores correctos\n");
+
+        salida.append("FASE 3. Encolar pistas por prioridad\n");
+        ColaPistas<Ficha> colas = new ColaPistas<>();
+        for (int i = 0; i < lista.tamanio(); i++) {
+            Ficha ficha = lista.obtener(i);
+            if (ficha.getTipo() == TipoFicha.PISTA) {
+                colas.encolar(ficha, ficha.getPrioridad());
+                salida.append("ENCOLAR P").append(ficha.getPrioridad()).append(": ")
+                        .append(ficha.getId()).append("\n");
+            }
+        }
+
+        salida.append("FASE 4. Resolver pistas\n");
+        Set<String> reveladas = new HashSet<>();
+        StringBuilder mensaje = new StringBuilder();
+        while (!colas.estaVacia()) {
+            Ficha pista = colas.desencolar();
+            salida.append("ATENDER P").append(pista.getPrioridad()).append(": ")
+                    .append(pista.getId()).append(" ").append(pista.getInstruccion()).append("\n");
+            String[] partes = pista.getInstruccion().split(":");
+            if (partes[0].equals("REVELAR")) {
+                String error = revelar(partes[1], lista, reveladas, mensaje, salida, pista);
+                if (error != null) return salida.append(error).toString();
+            } else {
+                String error = revelar(partes[1], lista, reveladas, mensaje, salida, pista);
+                if (error != null) return salida.append(error).toString();
+                Ficha destino = lista.buscar(partes[2]);
+                if (destino == null) {
+                    return error(salida, pista, "referencia inexistente " + partes[2] + ".");
+                }
+                if (destino.getTipo() != TipoFicha.LETRA) {
+                    return error(salida, pista, "la referencia " + partes[2] + " no apunta a una ficha LETRA.");
+                }
+                Ficha generada = new Ficha("GENERADA-" + pista.getId() + "-" + partes[2],
+                        TipoFicha.PISTA, "-", pista.getPrioridad(),
+                        "REVELAR:" + partes[2], pista.getPosicion(), pista.getLinea());
+                colas.encolar(generada, pista.getPrioridad());
+                salida.append("GENERAR Y ENCOLAR P").append(pista.getPrioridad())
+                        .append(": REVELAR:").append(partes[2]).append("\n");
+            }
+            salida.append("MENSAJE ACTUAL: ").append(mensaje).append("\n");
+        }
+
+        salida.append("RESULTADO: ").append(mensaje).append("\n");
+        return salida.toString();
+    }
+
+    private String revelar(String id, ListaFichas lista, Set<String> reveladas,
+                           StringBuilder mensaje, StringBuilder salida, Ficha pista) {
+        Ficha ficha = lista.buscar(id);
+        salida.append("BUSCAR ").append(id).append(": ")
+                .append(ficha == null ? "no encontrada" : ficha.getTipo()).append("\n");
+        if (ficha == null) return "ERROR en " + pista.getId() + ": referencia inexistente " + id + ".\n";
+        if (ficha.getTipo() != TipoFicha.LETRA) {
+            return "ERROR en " + pista.getId() + ": la referencia " + id + " no apunta a una ficha LETRA.\n";
+        }
+        if (!reveladas.add(id)) {
+            return "ERROR en " + pista.getId() + ": la letra " + id + " ya fue revelada.\n";
+        }
+        mensaje.append(ficha.getValor());
+        salida.append("REVELAR ").append(id).append(" = ").append(ficha.getValor()).append("\n");
+        return null;
+    }
+
+    private String error(StringBuilder salida, Ficha ficha, String detalle) {
+        if (ficha == null) {
+            salida.append("ERROR: ").append(detalle).append("\n");
+        } else {
+            salida.append("ERROR en línea física ").append(ficha.getLinea())
+                    .append(", ficha ").append(ficha.getId()).append(": ").append(detalle).append("\n");
+        }
+        return salida.toString();
+    }
+
+    private String parejaApertura(String cierre) {
+        if (cierre.equals(")")) return "(";
+        if (cierre.equals("]")) return "[";
+        return "{";
+    }
+
+    private String parejaCierre(String apertura) {
+        if (apertura.equals("(")) return ")";
+        if (apertura.equals("[")) return "]";
+        return "}";
     }
 }

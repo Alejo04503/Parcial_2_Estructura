@@ -1,8 +1,31 @@
 package manual;
+
 public final class PilaSimbolos {
     private Nodo<String> tope;
-    public void apilar(String simbolo){ throw new UnsupportedOperationException("Pendiente: apilar"); }
-    public String consultar(){ throw new UnsupportedOperationException("Pendiente: consultar"); }
-    public String retirar(){ throw new UnsupportedOperationException("Pendiente: retirar"); }
-    public boolean estaVacia(){ throw new UnsupportedOperationException("Pendiente: estaVacia"); }
+
+    public void apilar(String simbolo) {
+        Nodo<String> nuevo = new Nodo<>(simbolo);
+        nuevo.siguiente = tope;
+        tope = nuevo;
+    }
+
+    public String consultar() {
+        if (estaVacia()) {
+            return null;
+        }
+        return tope.dato;
+    }
+
+    public String retirar() {
+        if (estaVacia()) {
+            return null;
+        }
+        String simbolo = tope.dato;
+        tope = tope.siguiente;
+        return simbolo;
+    }
+
+    public boolean estaVacia() {
+        return tope == null;
+    }
 }
