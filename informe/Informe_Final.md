@@ -6,7 +6,7 @@
 **Repositorio:** [Alejo04503/Parcial_2_Estructura](https://github.com/Alejo04503/Parcial_2_Estructura)  
 **Rama documentada:** `desarrollo`  
 **Corte del documento:** 9 de noviembre de 2026  
-**Estado:** Implementación preparada para verificación local; resultados de ejecución pendientes.
+**Estado:** compilación y validación funcional local completadas; evidencias gráficas y sustentación pendientes.
 
 ---
 
@@ -18,7 +18,7 @@ La solución organizada en la rama `desarrollo` conserva el modelo de dominio en
 
 El ejemplo principal incluido en el repositorio está diseñado para producir `SOL`. Incluye dos pistas iniciales: una revela la primera letra y otra utiliza `ENCADENAR` para revelar una segunda letra y generar una nueva pista que revela la última. También se prepararon archivos para comprobar las tres prioridades y un cierre incorrecto.
 
-Este informe describe el problema, las decisiones de implementación, las estructuras utilizadas, el funcionamiento esperado y el plan de validación. Es importante separar el estado del código en GitHub de los resultados obtenidos al ejecutar el programa: a la fecha de este corte no se ha recibido una salida de compilación ni una ejecución local verificable. Por esa razón, las pruebas se presentan como pendientes y no como aprobadas. Las capturas exigidas por el enunciado deberán obtenerse del computador donde se compile y ejecute el proyecto.
+Este informe describe el problema, las decisiones de implementación, las estructuras utilizadas y los resultados de la validación. El 9 de noviembre de 2026 se recibió la salida de una compilación limpia, la ejecución de los 14 casos automatizados y la ejecución del ejemplo principal. Los resultados se registran en las secciones 7 a 9. Las capturas exigidas por el enunciado todavía deben guardarse como archivos reales en la carpeta `evidencias`.
 
 ## 1. Problema y reglas de entrada
 
@@ -106,62 +106,105 @@ El resultado definido por el enunciado para el ejemplo es `SOL`. La ejecución l
 
 ## 7. Archivos de prueba y cobertura requerida
 
-En el repositorio existen tres archivos de entrada iniciales:
+En el repositorio existen tres archivos de entrada persistentes:
 
 - `datos/ejemplo_valido.txt`: ejemplo con anidamiento correcto y una pista encadenada.
 - `datos/pruebas/tres_prioridades.txt`: pistas distribuidas en las prioridades 1, 2 y 3, con un orden físico distinto al orden de atención.
-- `datos/pruebas/cierre_incorrecto.txt`: modifica el cierre de F05 para producir el primer error de anidamiento descrito en el enunciado.
+- `datos/pruebas/cierre_incorrecto.txt`: modifica el cierre de F05 para producir un cruce de delimitadores.
 
-El enunciado también requiere casos para cierre sin apertura, apertura sobrante, identificador repetido, línea incompleta, tipo inválido, prioridad fuera del rango, referencia inexistente, referencia a una ficha de otro tipo, letra repetida, dos pistas de la misma prioridad y encadenamiento mientras aún quedan pistas en cola.
+El ejecutor `pruebas.CasosPrueba` amplía la cobertura mediante casos temporales que crea y elimina durante la ejecución. La suite comprueba:
 
-El ejecutor `pruebas.CasosPrueba` contiene actualmente comprobaciones iniciales del ejemplo, el archivo de tres prioridades y el cierre incorrecto. Esto no cubre todavía toda la matriz mínima. Los casos restantes deben agregarse y ejecutarse antes de declarar completa la validación.
+1. Ejemplo válido, con resultado `SOL` y trazas equivalentes.
+2. Atención de las tres prioridades, con resultado `SOL`.
+3. Cierre incorrecto.
+4. Cierre sin apertura.
+5. Apertura sobrante.
+6. Identificador duplicado.
+7. Línea incompleta.
+8. Tipo inválido.
+9. Prioridad fuera del rango 1–3.
+10. Referencia inexistente.
+11. Referencia a una ficha que no es `LETRA`.
+12. Intento de revelar una letra dos veces.
+13. FIFO entre pistas de igual prioridad.
+14. Encadenamiento detrás de una pista que ya estaba pendiente en la cola.
+
+Para los casos de ejecución, el programa compara las trazas de las dos implementaciones, además del primer error o el mensaje final según corresponda. Los casos de formato inválido comprueban que el lector rechace la entrada antes de iniciar el procesamiento.
 
 ## 8. Compilación, ejecución y reproducibilidad
 
-Desde la raíz del repositorio, en PowerShell, se crea la carpeta de salida y se compilan todos los archivos Java:
+La verificación local se realizó desde PowerShell, en la raíz del repositorio. Primero se actualizó la rama de trabajo y se eliminó la carpeta de compilación anterior. Después se compiló todo el código fuente:
 
 ```powershell
+git pull origin desarrollo
+Remove-Item -Recurse -Force out
 New-Item -ItemType Directory -Force out | Out-Null
 $archivos = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName }
 javac -encoding UTF-8 -d out $archivos
 ```
 
-El programa principal se inicia con:
-
-```powershell
-java -cp out app.Main datos/ejemplo_valido.txt
-```
-
-El ejecutor de pruebas iniciales se inicia con:
+La compilación terminó sin mostrar errores. La suite se ejecutó con:
 
 ```powershell
 java -cp out pruebas.CasosPrueba
 ```
 
-La compilación conjunta incluye las dos implementaciones y permite que el punto de entrada ejecute ambas sobre el mismo archivo. Para la entrega deben conservarse las salidas de consola que permitan identificar el comando, el resultado y cualquier error. Si la compilación presenta errores, deben corregirse antes de continuar con las pruebas funcionales.
+El resultado final fue:
+
+```text
+Pruebas terminadas: 14/14 correctas.
+```
+
+A continuación se ejecutó el ejemplo principal:
+
+```powershell
+java -cp out app.Main datos/ejemplo_valido.txt
+```
+
+Las dos implementaciones leyeron nueve fichas, validaron correctamente los delimitadores, atendieron F08 en prioridad 1 y F09 en prioridad 2, y procesaron la pista generada `GENERADA-F09-F06`. Ambas construyeron el mensaje `SOL`. La comparación final mostró:
+
+```text
+RESULTADO: SOL
+TRAZAS EQUIVALENTES: mismo recorrido, primer error y resultado.
+```
+
+Estos resultados corresponden a las salidas de consola compartidas durante la verificación local del 9 de noviembre de 2026. No sustituyen las capturas que deben adjuntarse a la entrega.
 
 ## 9. Estado de validación y evidencias
 
-A la fecha de corte, la rama `desarrollo` contiene el código y los archivos iniciales descritos en este informe. Sin embargo, no se dispone todavía de una salida de compilación o ejecución local confirmada por el estudiante. Por tanto, no se afirma que el proyecto compile correctamente ni que los casos hayan pasado. Las salidas esperadas descritas anteriormente proceden de las reglas del enunciado y del diseño de los archivos de entrada, no de una ejecución que se esté presentando como evidencia.
+<badge>Validación funcional local: 14/14</badge>
 
-La entrega requiere capturas legibles de compilación manual, compilación con biblioteca, recorrido de lista, operaciones de pila, orden de colas, mensaje `SOL`, error de F05 y comparación de versiones. Cada captura debe incluir el objetivo, el comando utilizado, el resultado visible y una explicación breve. Las imágenes deben ser capturadas durante ejecuciones reales.
+La evidencia de consola confirma tres resultados:
 
-La carpeta `evidencias` está preparada para recibir esos archivos. No se incluyen imágenes de muestra ni capturas simuladas. Una vez ejecutadas las pruebas, se debe actualizar este apartado con fecha, nombre de archivo, comando y resultado real de cada evidencia.
+- **Compilación:** todos los archivos Java se compilaron juntos sin errores.
+- **Pruebas automatizadas:** los 14 escenarios terminaron correctamente.
+- **Ejecución integral:** el archivo principal produjo `SOL` en ambas versiones y la comparación confirmó trazas equivalentes.
+
+La suite también comprobó los errores de cierre sin apertura y apertura sobrante. En estos casos, ambas versiones identifican el error durante la fase de pila y no continúan con la resolución de pistas. Los errores de estructura del archivo, como ID duplicado o línea incompleta, se rechazan en la lectura.
+
+La carpeta `evidencias` está preparada, pero las capturas todavía deben guardarse desde el computador donde se realizaron las pruebas. Se recomienda conservar imágenes legibles que muestren el comando y su salida completa para:
+
+1. Compilación limpia.
+2. Ejecución de las 14 pruebas.
+3. Recorrido de la lista enlazada.
+4. Operaciones de apilar, consultar y retirar.
+5. Atención de las tres prioridades.
+6. Mensaje final `SOL` y pista generada.
+7. Error de delimitadores y detención del procesamiento.
+8. Comparación de las dos implementaciones.
+
+No se incluyen imágenes simuladas. Hasta que se agreguen los archivos, las evidencias gráficas deben considerarse pendientes aunque los resultados de consola ya hayan sido comprobados.
 
 ## 10. Conclusiones y trabajo pendiente
 
 El diseño separa lectura, estructuras, validación y ejecución. La versión manual demuestra las operaciones de lista enlazada, pila y tres colas FIFO mediante nodos propios. La versión con `java.util` permite contrastar el comportamiento utilizando las colecciones de Java. La pista encadenada es el caso clave para demostrar que una cola puede recibir trabajo nuevo y seguir respetando el orden FIFO.
 
-El proyecto está preparado para iniciar la etapa de verificación local, pero no debe considerarse terminado hasta completar estos puntos:
+La validación funcional está completada para los 14 escenarios implementados. Antes de cerrar la entrega, todavía deben completarse estos puntos:
 
-1. Compilar todos los archivos Java y corregir cualquier error encontrado.
-2. Ejecutar el ejemplo y confirmar `SOL` en ambas versiones.
-3. Ejecutar el caso de tres prioridades y verificar el orden P1 → P2 → P3.
-4. Ejecutar el cierre incorrecto y confirmar que se detiene antes de procesar pistas.
-5. Agregar y ejecutar los demás casos mínimos y casos de frontera.
-6. Comparar las trazas y corregir cualquier diferencia observable.
-7. Guardar las ocho evidencias solicitadas.
-8. Actualizar este informe con los resultados reales y preparar la sustentación individual.
+1. Guardar las capturas reales de compilación, suite y ejecución en `evidencias/`.
+2. Revisar la paginación del informe al exportarlo para confirmar que cumple la extensión de 6 a 8 páginas solicitada.
+3. Preparar la sustentación individual, especialmente la explicación de LIFO, FIFO, selección de prioridades, búsquedas por ID y encadenamiento.
+4. Revisar el proyecto completo frente a la rúbrica y comprobar que los archivos de entrega estén incluidos.
 
 La documentación debe mantenerse sincronizada con el comportamiento final del programa. La evidencia de una ejecución no sustituye la explicación del algoritmo: durante la sustentación se debe poder justificar por qué la pila es LIFO, por qué cada cola es FIFO, cómo se seleccionan las prioridades y cómo se inserta y procesa una pista generada.
 
