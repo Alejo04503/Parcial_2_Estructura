@@ -38,22 +38,23 @@ public final class ValidadorBiblioteca {
         salida.append("\n");
 
         salida.append("FASE 2. Validar delimitadores con pila\n");
-        Deque<String> pila = new ArrayDeque<>();
+        Deque<Ficha> pila = new ArrayDeque<>();
 
         for (Ficha ficha : lista) {
             if (ficha.getTipo() == TipoFicha.ABRE) {
-                pila.push(ficha.getValor());
+                pila.push(ficha);
                 salida.append("APILAR ").append(ficha.getValor()).append(" [")
                         .append(ficha.getId()).append("]\n");
 
             } else if (ficha.getTipo() == TipoFicha.CIERRA) {
                 String esperado = parejaApertura(ficha.getValor());
-                String tope = pila.peek();
+                Ficha apertura = pila.peek();
+                String tope = apertura == null ? null : apertura.getValor();
 
                 salida.append("CONSULTAR PILA: ")
                         .append(tope == null ? "vacía" : tope).append("\n");
 
-                if (tope == null) {
+                if (apertura == null) {
                     return error(salida, ficha, "cierre " + ficha.getValor()
                             + " sin apertura correspondiente.");
                 }
@@ -70,8 +71,9 @@ public final class ValidadorBiblioteca {
         }
 
         if (!pila.isEmpty()) {
-            return salida.append("ERROR: apertura ").append(pila.peek())
-                    .append(" sin cierre correspondiente.\n").toString();
+            Ficha apertura = pila.peek();
+            return error(salida, apertura, "apertura " + apertura.getValor()
+                    + " sin cierre correspondiente.");
         }
 
         salida.append("PILA VACÍA: delimitadores correctos\n");
