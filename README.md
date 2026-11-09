@@ -1,65 +1,77 @@
 # Bóveda de Fichas Java
 
-Programa académico en Java que lee un archivo UTF-8 de fichas, valida el anidamiento de delimitadores y descifra un mensaje a partir de pistas.
+Programa académico en Java que lee fichas desde un archivo UTF-8, valida delimitadores correctamente anidados y descifra un mensaje mediante pistas con tres prioridades.
 
-> Estado actual: plantilla inicial. Los métodos marcados con `TODO` todavía deben implementarse.
+## Estado del proyecto
+
+La rama desarrollo contiene la implementación de las estructuras manuales y la versión equivalente con java.util. Se conserva el modelo base del profesor: Ficha, TipoFicha y Nodo. Se completan las clases y métodos que estaban pendientes en la plantilla.
 
 ## Requisitos
 
-- JDK instalado (incluye `java` y `javac`).
-- Visual Studio Code, recomendado para editar el proyecto.
-- Git para controlar versiones y sincronizar con GitHub.
+- JDK 17 o superior.
+- Visual Studio Code o cualquier editor Java.
+- Git.
 
 ## Estructura
 
-- `src/app`: punto de entrada y lectura del archivo.
-- `src/dominio`: modelo de ficha y tipos permitidos.
-- `src/manual`: implementaciones propias de lista, pila y cola, y su validador.
-- `src/biblioteca`: versión equivalente usando `java.util`.
-- `src/pruebas`: pruebas reproducibles.
-- `datos`: archivos de entrada válidos e inválidos.
-- `evidencias`: capturas reales de compilación y ejecución.
-- `informe`: informe final de 6 a 8 páginas.
-- `docs`: diseño y plan de trabajo.
+- src/app: lectura del archivo y punto de entrada.
+- src/dominio: modelo de ficha y tipos permitidos.
+- src/manual: lista enlazada, pila, tres colas FIFO y validador propio.
+- src/biblioteca: implementación equivalente con java.util.
+- src/pruebas: pruebas reproducibles.
+- datos: archivos de entrada válidos e inválidos.
+- docs: plan de trabajo.
+- informe: informe final.
+- evidencias: capturas reales de compilación y ejecución.
 
-## Compilar (PowerShell, Windows)
+## Compilar en Windows PowerShell
 
-Desde la raíz del repositorio:
+Ejecutar desde la raíz del repositorio:
 
-```powershell
-New-Item -ItemType Directory -Force out | Out-Null
-$files = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName }
-javac -encoding UTF-8 -d out $files
-```
+    New-Item -ItemType Directory -Force out | Out-Null
+    $files = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName }
+    javac -encoding UTF-8 -d out $files
 
-## Ejecutar
+## Ejecutar ambas versiones y comparar trazas
 
-Cuando se complete el punto de entrada y el algoritmo, el ejemplo válido se ejecutará así:
+    java -cp out app.Main datos/ejemplo_valido.txt
 
-```powershell
-java -cp out app.Main datos/ejemplo_valido.txt
-```
+El ejemplo debe producir SOL. El programa muestra el recorrido de la lista, operaciones de pila, orden de atención de las colas, pistas generadas y comparación de trazas.
 
-El ejemplo válido debe producir el mensaje `SOL`. La salida exacta y las trazas se documentarán al implementar el algoritmo.
+## Ejecutar pruebas básicas
 
-## Reglas centrales
+    java -cp out pruebas.CasosPrueba
 
-1. Leer el encabezado y validar cinco campos por ficha.
-2. Mantener identificadores únicos y validar tipo, valor, prioridad e instrucción.
-3. Recorrer las fichas en orden usando una pila para comprobar los delimitadores.
-4. Si la validación de delimitadores falla, no procesar pistas.
-5. Procesar pistas en prioridad 1, luego 2 y luego 3; conservar FIFO dentro de cada prioridad.
-6. `REVELAR:id` añade una letra una sola vez. `ENCADENAR:id1:id2` añade la letra de `id1` y crea una pista `REVELAR:id2` al final de la cola de la misma prioridad.
-7. Informar el primer error según las fases y el orden de procesamiento, conservando la traza anterior al error.
-8. La implementación manual y la versión con `java.util` deben ser equivalentes.
+## Formato del archivo
+
+La primera línea debe ser:
+
+    id|tipo|valor|prioridad|instruccion
+
+Cada fila tiene cinco campos separados por |:
+
+- id: identificador único.
+- tipo: ABRE, CIERRA, LETRA o PISTA.
+- valor: para ABRE/CIERRA uno de los delimitadores; para LETRA una letra; para PISTA el guion -.
+- prioridad: 1, 2 o 3.
+- instruccion: REVELAR:id o ENCADENAR:id1:id2 para PISTA; - para los demás tipos.
+
+## Reglas del algoritmo
+
+1. Leer y validar encabezado, campos, tipos, valores, prioridades, instrucciones e IDs duplicados.
+2. Insertar las fichas en una lista enlazada propia y conservar el orden de lectura.
+3. Recorrer la lista: apilar aperturas y retirar únicamente cuando el cierre corresponda con el tope.
+4. Si los delimitadores son válidos, distribuir pistas en tres colas FIFO: prioridad 1, luego 2 y luego 3.
+5. REVELAR:id agrega una letra al mensaje una sola vez.
+6. ENCADENAR:id1:id2 revela primero id1 y agrega REVELAR:id2 al final de la misma cola.
+7. Ante el primer error se detiene el proceso y se conserva la traza previa.
 
 ## Flujo Git
 
-- `main`: versión estable y comprobada.
-- Trabajar cada tarea en una rama `feature/...`.
-- Compilar y probar antes de confirmar cambios.
-- Subir la rama, revisar los cambios y crear un Pull Request hacia `main`.
+- main: versión estable.
+- desarrollo: integración del trabajo.
+- Los cambios se prueban en desarrollo antes de integrarse a main.
 
-## Entrega
+## Evidencias pendientes
 
-El repositorio debe contener código fuente, datos de prueba, README, informe y evidencias reales. No se deben inventar capturas ni afirmar que una prueba pasó si no se ejecutó.
+Las capturas deben corresponder a ejecuciones reales del computador. No se deben presentar capturas simuladas ni afirmar que una prueba pasó sin ejecutarla.
