@@ -30,14 +30,15 @@ public final class ValidadorManual {
         for (int i = 0; i < lista.tamanio(); i++) {
             Ficha ficha = lista.obtener(i);
             if (ficha.getTipo() == TipoFicha.ABRE) {
-                pila.apilar(ficha.getValor());
+                pila.apilar(ficha);
                 salida.append("APILAR ").append(ficha.getValor()).append(" [")
                         .append(ficha.getId()).append("]\n");
             } else if (ficha.getTipo() == TipoFicha.CIERRA) {
                 String esperado = parejaApertura(ficha.getValor());
-                String tope = pila.consultar();
+                Ficha apertura = pila.consultar();
+                String tope = apertura == null ? null : apertura.getValor();
                 salida.append("CONSULTAR PILA: ").append(tope == null ? "vacía" : tope).append("\n");
-                if (tope == null) {
+                if (apertura == null) {
                     return error(salida, ficha, "cierre " + ficha.getValor()
                             + " sin apertura correspondiente.");
                 }
@@ -51,8 +52,9 @@ public final class ValidadorManual {
             }
         }
         if (!pila.estaVacia()) {
-            String abierto = pila.consultar();
-            return error(salida, null, "apertura " + abierto + " sin cierre correspondiente.");
+            Ficha apertura = pila.consultar();
+            return error(salida, apertura,
+                    "apertura " + apertura.getValor() + " sin cierre correspondiente.");
         }
         salida.append("PILA VACÍA: delimitadores correctos\n");
 
@@ -120,12 +122,8 @@ public final class ValidadorManual {
     }
 
     private String error(StringBuilder salida, Ficha ficha, String detalle) {
-        if (ficha == null) {
-            salida.append("ERROR: ").append(detalle).append("\n");
-        } else {
-            salida.append("ERROR en línea física ").append(ficha.getLinea())
-                    .append(", ficha ").append(ficha.getId()).append(": ").append(detalle).append("\n");
-        }
+        salida.append("ERROR en línea física ").append(ficha.getLinea())
+                .append(", ficha ").append(ficha.getId()).append(": ").append(detalle).append("\n");
         return salida.toString();
     }
 
