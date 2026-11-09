@@ -27,10 +27,10 @@ public final class CasosPrueba {
         probarArchivoValido("tres prioridades", carpeta.resolve("tres_prioridades.txt"), "SOL");
         probarErrorEjecucion("cierre incorrecto", carpeta.resolve("cierre_incorrecto.txt"),
                 "se esperaba ]");
-        probarErrorContenido(carpeta, "cierre sin apertura",
+        probarErrorEjecucionContenido(carpeta, "cierre sin apertura",
                 "id|tipo|valor|prioridad|instruccion\nF01|CIERRA|)|1|-\n",
                 "cierre ) sin apertura correspondiente.");
-        probarErrorContenido(carpeta, "apertura sobrante",
+        probarErrorEjecucionContenido(carpeta, "apertura sobrante",
                 "id|tipo|valor|prioridad|instruccion\nF01|ABRE|(|1|-\n",
                 "línea física 2, ficha F01: apertura ( sin cierre correspondiente.");
         probarErrorContenido(carpeta, "ID duplicado",
