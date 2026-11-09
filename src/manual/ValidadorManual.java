@@ -12,7 +12,7 @@ public final class ValidadorManual {
         ListaFichas lista = new ListaFichas();
 
         salida.append("=== VERSION MANUAL ===\n");
-        salida.append("FASE 1. Cargar lista enlazada\n");
+        salida.append("FASE 1. Cargar lista de fichas\n");
         for (Ficha ficha : entrada) {
             lista.agregar(ficha);
             salida.append("INSERTAR LISTA: ").append(ficha.getId())
