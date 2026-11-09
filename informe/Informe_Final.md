@@ -172,7 +172,7 @@ Estos resultados corresponden a las salidas de consola compartidas durante la ve
 
 ## 9. Estado de validación y evidencias
 
-<badge>Validación funcional local: 14/14</badge>
+**Validación funcional local: 14/14 pruebas correctas.**
 
 La evidencia de consola confirma tres resultados:
 
