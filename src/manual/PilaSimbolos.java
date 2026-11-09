@@ -1,28 +1,30 @@
 package manual;
 
-public final class PilaSimbolos {
-    private Nodo<String> tope;
+import dominio.Ficha;
 
-    public void apilar(String simbolo) {
-        Nodo<String> nuevo = new Nodo<>(simbolo);
+public final class PilaSimbolos {
+    private Nodo<Ficha> tope;
+
+    public void apilar(Ficha ficha) {
+        Nodo<Ficha> nuevo = new Nodo<>(ficha);
         nuevo.siguiente = tope;
         tope = nuevo;
     }
 
-    public String consultar() {
+    public Ficha consultar() {
         if (estaVacia()) {
             return null;
         }
         return tope.dato;
     }
 
-    public String retirar() {
+    public Ficha retirar() {
         if (estaVacia()) {
             return null;
         }
-        String simbolo = tope.dato;
+        Ficha ficha = tope.dato;
         tope = tope.siguiente;
-        return simbolo;
+        return ficha;
     }
 
     public boolean estaVacia() {
