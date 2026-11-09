@@ -98,13 +98,13 @@ java -cp out app.Main datos/ejemplo_valido.txt
 
 El ejemplo debe producir el mensaje `SOL`. El programa muestra primero la traza manual, después la traza `java.util` y finalmente el resultado de compararlas.
 
-### Ejecutar el conjunto inicial de pruebas
+### Ejecutar la suite de pruebas
 
 ```powershell
 java -cp out pruebas.CasosPrueba
 ```
 
-El ejecutor inicial incluye el ejemplo válido, el archivo de tres prioridades y el cierre incorrecto. Este conjunto debe ampliarse con los casos mínimos descritos en el enunciado antes de considerar completa la validación.
+El ejecutor contiene 14 casos que cubren entradas válidas, errores de delimitadores y formato, referencias de pistas, prevención de letras repetidas, orden FIFO y encadenamiento. En la verificación local del 9 de noviembre de 2026, los 14 casos finalizaron correctamente (`14/14`).
 
 ## 7. Archivos de prueba disponibles
 
@@ -116,9 +116,9 @@ El ejecutor inicial incluye el ejemplo válido, el archivo de tres prioridades y
 
 Los resultados de esta tabla son expectativas del caso de prueba. La aprobación efectiva debe registrarse después de ejecutar el programa.
 
-## 8. Casos mínimos que deben verificarse
+## 8. Cobertura de pruebas
 
-Además de los tres archivos existentes, el enunciado exige probar:
+La suite `pruebas.CasosPrueba` ejecuta y comprueba los siguientes escenarios:
 
 - Cierre sin apertura y apertura sobrante.
 - ID duplicado, línea incompleta, tipo inválido y prioridad fuera del rango 1–3.
@@ -127,6 +127,8 @@ Además de los tres archivos existentes, el enunciado exige probar:
 - Dos pistas de una misma prioridad para comprobar FIFO.
 - Una pista `ENCADENAR` que agregue una nueva pista a una cola que todavía contiene elementos.
 - Comparación del mensaje, primer error y orden de eventos entre las dos versiones.
+
+**Resultado local registrado el 9 de noviembre de 2026:** 14/14 pruebas correctas. También se compiló el proyecto sin errores y se ejecutó `app.Main` con `datos/ejemplo_valido.txt`; ambas versiones produjeron `SOL` y la comparación indicó `TRAZAS EQUIVALENTES`.
 
 ## 9. Evidencias de entrega
 
@@ -145,6 +147,8 @@ No se deben crear capturas simuladas ni registrar como exitosa una prueba que no
 
 ## 10. Estado del proyecto
 
-La rama `desarrollo` contiene la implementación inicial de ambas versiones y los datos de prueba indicados. La compilación y las ejecuciones locales aún deben verificarse en el computador de entrega. Los casos de frontera, las evidencias finales y la sustentación siguen pendientes.
+La rama `desarrollo` contiene ambas implementaciones y la suite ampliada. En la verificación local del 9 de noviembre de 2026, la compilación terminó sin errores, las 14 pruebas finalizaron correctamente y el ejemplo principal produjo `SOL` en ambas versiones con trazas equivalentes.
 
-Consulta `informe/Informe_Final.md` para el detalle técnico y el registro honesto del estado de validación.
+**Pendiente:** guardar las capturas reales en `evidencias/`, revisar la paginación final del informe y realizar la sustentación. No se deben presentar capturas simuladas ni afirmar que las evidencias gráficas están adjuntas si todavía no se han guardado.
+
+Consulta `informe/Informe_Final.md` para el detalle técnico y el registro de validación.
