@@ -4,212 +4,195 @@
 **Modalidad:** Trabajo individual  
 **Lenguaje:** Java  
 **Repositorio:** [Alejo04503/Parcial_2_Estructura](https://github.com/Alejo04503/Parcial_2_Estructura)  
-**Rama documentada:** `desarrollo`  
-**Corte del documento:** 9 de noviembre de 2026  
-**Estado:** compilación y validación funcional local completadas; evidencias gráficas y sustentación pendientes.
+**Rama de entrega:** `main`  
+**Fecha de actualización:** 12 de noviembre de 2026  
+**Estado:** implementación, pruebas y evidencias incorporadas al repositorio.
 
 ---
 
 ## Resumen ejecutivo
 
-El proyecto Bóveda de Fichas consiste en construir un programa Java que lea un archivo de texto con fichas ordenadas, compruebe el anidamiento correcto de delimitadores y descifre una palabra mediante pistas. El enunciado exige dos implementaciones equivalentes: una con estructuras desarrolladas manualmente y otra con estructuras de `java.util`.
+El proyecto Bóveda de Fichas consiste en desarrollar un programa Java que lea un archivo de texto con fichas ordenadas, compruebe el anidamiento correcto de delimitadores y descifre un mensaje mediante pistas. El trabajo contempla dos implementaciones equivalentes: una que desarrolla manualmente las estructuras de datos y otra que utiliza colecciones de `java.util`.
 
-La solución organizada en la rama `desarrollo` conserva el modelo de dominio entregado como base por el profesor y completa las clases encargadas de las estructuras y del procesamiento. La versión manual utiliza una lista enlazada propia, una pila de símbolos y tres colas FIFO separadas por prioridad. La segunda versión utiliza colecciones de Java para reproducir el mismo flujo. Ambas reciben la misma lista de fichas y generan trazas de sus operaciones.
+La implementación manual utiliza una lista enlazada propia, una pila de símbolos y tres colas FIFO independientes, una por cada prioridad. La implementación con biblioteca reproduce el mismo procesamiento mediante una lista de Java, una pila basada en `Deque` y tres colas `Queue`. Ambas versiones reciben las mismas fichas y generan trazas que permiten comparar el recorrido, el primer error y el resultado.
 
-El ejemplo principal incluido en el repositorio está diseñado para producir `SOL`. Incluye dos pistas iniciales: una revela la primera letra y otra utiliza `ENCADENAR` para revelar una segunda letra y generar una nueva pista que revela la última. También se prepararon archivos para comprobar las tres prioridades y un cierre incorrecto.
+El ejemplo principal contiene nueve fichas y debe producir el mensaje `SOL`. La pista F09 ejecuta la instrucción `ENCADENAR:F04:F06`: revela la letra O y genera una nueva pista que revela L. Además del ejemplo válido, el repositorio contiene una entrada con las tres prioridades y otra que provoca un error de delimitadores en F05.
 
-Este informe describe el problema, las decisiones de implementación, las estructuras utilizadas y los resultados de la validación. El 9 de noviembre de 2026 se recibió la salida de una compilación limpia, la ejecución de los 14 casos automatizados y la ejecución del ejemplo principal. Los resultados se registran en las secciones 7 a 9. Las capturas exigidas por el enunciado todavía deben guardarse como archivos reales en la carpeta `evidencias`.
+La verificación local comunicada el 12 de noviembre de 2026 incluyó compilación completa sin errores, ejecución del ejemplo principal, comparación de trazas equivalentes y 14 de 14 pruebas automatizadas correctas. Las capturas de las ejecuciones se incorporaron a la carpeta `evidencias` y se describen en su archivo índice.
 
-## 1. Problema y reglas de entrada
+## 1. Planteamiento y reglas de entrada
 
-La bóveda recibe un archivo UTF-8. La primera línea contiene el encabezado:
+La aplicación recibe un archivo de texto UTF-8. Su primera línea debe contener el encabezado:
 
 ```text
 id|tipo|valor|prioridad|instruccion
 ```
 
-Cada registro posterior tiene cinco campos separados por el carácter `|`. El identificador debe ser único. El tipo puede ser `ABRE`, `CIERRA`, `LETRA` o `PISTA`. El valor depende del tipo: una apertura, un cierre, una letra individual o el guion `-`. La prioridad debe estar entre 1 y 3. Las instrucciones de una pista son `REVELAR:id` o `ENCADENAR:id1:id2`; los otros tipos utilizan `-`.
+Cada registro posterior contiene cinco campos separados por el carácter `|`. El identificador debe ser único y no puede estar vacío. El tipo debe ser uno de los siguientes: `ABRE`, `CIERRA`, `LETRA` o `PISTA`. El valor depende del tipo: una apertura, un cierre, una letra individual o el guion `-`. La prioridad debe estar entre 1 y 3. Las instrucciones válidas para las pistas son `REVELAR:id` y `ENCADENAR:id1:id2`; los demás tipos deben utilizar `-`.
 
-La posición de una ficha se cuenta desde 1 en el orden de lectura. También se conserva la línea física, que incluye el encabezado al contar las líneas del archivo. Estos dos datos permiten identificar dónde se originó un registro y comunicar errores con mayor precisión.
+El lector conserva dos referencias de ubicación. La posición identifica el orden de la ficha dentro de la colección, empezando en 1. La línea física identifica el número real de línea del archivo e incluye el encabezado. Esto permite emitir mensajes de error precisos y distinguir la posición lógica de la ficha de su ubicación en el documento.
 
-La instrucción `REVELAR:id` busca la ficha referenciada y agrega su letra al mensaje. La instrucción `ENCADENAR:id1:id2` revela primero la letra asociada a `id1` y crea una nueva pista `REVELAR:id2`. Esta pista generada se coloca al final de la cola correspondiente a la prioridad de la pista que la produjo. Una letra solo puede revelarse una vez. Si la referencia no existe o no apunta a una ficha de tipo `LETRA`, el proceso informa un error.
+La instrucción `REVELAR:id` busca una ficha por su identificador y agrega su valor al mensaje si corresponde a una ficha de tipo `LETRA` que todavía no se haya revelado. La instrucción `ENCADENAR:id1:id2` revela primero la ficha `id1` y crea una nueva pista `REVELAR:id2`. La pista generada se agrega al final de la cola de la misma prioridad que la pista que la originó. Una referencia inexistente, una referencia a un tipo diferente de `LETRA` o el intento de revelar una letra por segunda vez provoca un error.
 
-El orden de fases es obligatorio. Primero se valida el archivo. Después se construye y recorre la lista enlazada. A continuación se valida el anidamiento con una pila. Solo cuando la pila queda vacía se distribuyen y atienden las pistas. Un error detiene las fases posteriores y conserva la traza que ya se había producido.
+El orden de procesamiento es significativo: primero se valida el archivo, luego se construye y recorre la lista, después se comprueban los delimitadores con la pila y solo entonces se procesan las pistas. Si una fase detecta un error, la ejecución se detiene y no continúa con las fases posteriores.
 
-## 2. Diseño general de la solución
+## 2. Organización del programa
 
-La solución se divide en cuatro responsabilidades:
+El proyecto se distribuye en paquetes para separar responsabilidades:
 
-1. **Dominio:** representa los datos de cada ficha y los tipos válidos.
-2. **Lectura:** transforma las líneas del archivo en objetos ficha y comprueba el formato.
-3. **Procesamiento manual y con biblioteca:** ejecuta las mismas fases utilizando estructuras diferentes.
-4. **Ejecución y pruebas:** permite iniciar el programa desde consola, mostrar las trazas y ejecutar casos reproducibles.
+- **`dominio`:** contiene la clase `Ficha` y la enumeración `TipoFicha`, que representan los datos y tipos permitidos.
+- **`app`:** contiene `LectorFichas`, responsable de leer y validar el archivo, y `Main`, que coordina las dos implementaciones y compara sus resultados.
+- **`manual`:** contiene `Nodo`, `ListaFichas`, `PilaSimbolos`, `ColaPistas` y `ValidadorManual`.
+- **`biblioteca`:** contiene `ValidadorBiblioteca`, que realiza el mismo proceso mediante colecciones de Java.
+- **`pruebas`:** contiene `CasosPrueba`, encargado de ejecutar los escenarios automatizados.
 
-La clase `Ficha` contiene identificador, tipo, valor, prioridad, instrucción, posición y línea física. `TipoFicha` restringe los tipos admitidos. Estas clases forman parte de la base del profesor y se mantienen como modelo del proyecto.
-
-La organización por paquetes evita mezclar la lectura del archivo con las operaciones internas de las estructuras. El lector no resuelve el mensaje; prepara los datos y rechaza registros con formato inválido. Los validadores reciben la lista ya leída y ejecutan las fases del algoritmo.
+La separación permite que la lectura del archivo no dependa de la forma en que se implementan las estructuras. El lector prepara una lista de objetos `Ficha` y rechaza los registros mal formados. Los validadores reciben esa entrada y ejecutan las fases del algoritmo. La clase principal muestra ambas trazas y comprueba si coinciden.
 
 ## 3. Implementación manual de las estructuras
 
-### 3.1 Lista enlazada de fichas
+### 3.1 Lista enlazada
 
-La clase `ListaFichas` utiliza nodos enlazados. Mantiene una referencia a la cabeza, otra a la cola y un contador de elementos. Cuando se agrega la primera ficha, el nuevo nodo pasa a ser cabeza y cola. En las inserciones posteriores, el nodo que era cola apunta al nuevo y la referencia de cola se actualiza.
+La clase `ListaFichas` administra nodos enlazados. Mantiene referencias a la cabeza y a la cola, además de un contador de elementos. Cuando se agrega la primera ficha, el nodo nuevo se convierte en cabeza y cola. En las inserciones posteriores, el nodo que estaba al final apunta al nuevo nodo y la referencia de cola se actualiza.
 
-La lista conserva el orden del archivo. El método de búsqueda recorre los nodos desde la cabeza y compara el identificador de cada ficha. El método de acceso por índice permite recorrer la lista y mostrar el orden de inserción. La búsqueda por ID es necesaria para resolver las instrucciones de las pistas. La misma estructura permite registrar las fichas LETRA que ya fueron reveladas y detectar intentos repetidos sin recurrir a un conjunto de `java.util` en el algoritmo manual.
+La lista conserva el orden de lectura del archivo. El recorrido permite mostrar las fichas desde la primera hasta la última. Para resolver una pista, el método de búsqueda comienza en la cabeza y compara el identificador de cada ficha hasta encontrarlo o llegar al final. Esta búsqueda secuencial es necesaria porque las instrucciones hacen referencia a fichas mediante su ID.
+
+La implementación manual también utiliza una segunda lista para registrar las fichas que ya fueron reveladas. Antes de agregar una letra al mensaje, se busca su identificador en esa lista. De esta manera se impide revelar dos veces la misma ficha sin utilizar un conjunto de la biblioteca de Java en el procesamiento manual.
 
 ### 3.2 Pila de símbolos
 
-La clase `PilaSimbolos` se implementa mediante nodos enlazados y una referencia al tope. Cada nodo conserva la ficha de apertura, no solo el carácter, para mantener disponibles su identificador y línea física si queda una apertura sin cerrar. La operación de apilar coloca un nuevo nodo delante del anterior tope. Consultar devuelve la ficha superior sin retirarla. Retirar mueve la referencia al nodo siguiente y devuelve la ficha que estaba arriba; el validador compara su campo `valor` con el cierre esperado.
+La clase `PilaSimbolos` se construye con nodos enlazados y una referencia al tope. Cada nodo conserva la ficha de apertura completa, lo que permite recuperar su identificador y línea física si queda una apertura sin cerrar.
 
-La pila es LIFO: el último delimitador de apertura que entra debe ser el primero que salga. Esta propiedad permite validar anidamientos. Por ejemplo, después de apilar `(` y luego `[`, el siguiente cierre correcto debe ser `]`. Un cierre `)` en ese momento no puede retirar la apertura exterior porque la apertura cuadrada sigue en el tope.
+La operación `apilar` coloca el nuevo nodo en el tope. La operación `consultar` devuelve la ficha superior sin retirarla. La operación `retirar` elimina el nodo superior y devuelve la ficha que contenía. Estas operaciones representan el comportamiento LIFO: el último elemento que entra es el primero que sale.
 
-### 3.3 Tres colas FIFO de prioridad
+Al encontrar un símbolo de apertura, el validador lo apila. Al encontrar un cierre, consulta el tope y determina cuál es la apertura esperada. Solo retira el elemento si ambos símbolos forman una pareja correcta. Por ejemplo, si se apila primero `(` y después `[`, el siguiente cierre válido debe ser `]`; no puede cerrarse el paréntesis mientras el corchete siga en el tope. Si la pila está vacía ante un cierre, o si el símbolo no coincide, se informa el error y se detiene el proceso. Al finalizar el recorrido, la pila también debe estar vacía.
 
-La clase `ColaPistas` administra tres colas enlazadas independientes. Cada cola mantiene referencias a su frente y final. Al encolar, el nuevo nodo se agrega al final. Al desencolar, se retira el nodo del frente. La prioridad 1 se revisa antes que la 2, y la 2 antes que la 3.
+### 3.3 Tres colas FIFO por prioridad
 
-El orden FIFO se conserva dentro de cada prioridad. Cuando una instrucción genera otra pista, esta se agrega al final de la misma cola. Así, la pista generada no adelanta a las pistas que ya estaban esperando en esa prioridad. La implementación manual no utiliza una colección de colas de Java para resolver esta fase: los nodos y enlaces de las tres colas se administran en la clase propia.
+La clase genérica `ColaPistas` administra tres colas enlazadas mediante arreglos de referencias a nodos: uno para los frentes y otro para los finales. Cada prioridad tiene su propio frente y final. Al encolar, el nodo nuevo se agrega al final de la cola correspondiente. Al desencolar, se busca desde prioridad 1 hasta prioridad 3 y se retira el primer nodo disponible.
+
+La política combina dos reglas. Entre prioridades distintas, siempre se atiende primero la prioridad numéricamente menor: P1 antes que P2 y P2 antes que P3. Dentro de una misma prioridad se conserva FIFO: la primera pista en entrar es la primera en salir. Cuando una instrucción genera otra pista, esta se agrega al final de la misma cola. Por tanto, no adelanta a las pistas que ya estaban esperando.
+
+La clase valida que la prioridad esté entre 1 y 3. Si una cola queda vacía después de retirar su último elemento, también se actualiza su referencia final para mantener correctamente el estado de la estructura.
 
 ## 4. Implementación equivalente con java.util
 
-La segunda versión reproduce las mismas fases con estructuras de biblioteca. La lista de fichas se representa mediante una lista de Java. Para la pila se utiliza `Deque` con operaciones `push`, `peek` y `pop`. Para las prioridades se mantienen tres colas FIFO de tipo `Queue`, implementadas con `LinkedList`, y se utilizan `offer`, `poll` e `isEmpty`.
+La segunda implementación reproduce las mismas fases con estructuras de la biblioteca estándar. La lista de fichas se almacena en una lista de Java. La pila utiliza `Deque` con las operaciones `push`, `peek` y `pop`. Para las prioridades se crea una colección con tres colas FIFO de tipo `Queue`, implementadas mediante `LinkedList`, que utilizan `offer`, `poll` e `isEmpty`.
 
-La selección de tres colas, en lugar de una sola cola de prioridad ordenada automáticamente, hace explícito el requisito del enunciado: atender prioridad 1 completa antes de pasar a prioridad 2 y después a prioridad 3, conservando FIFO en cada grupo. La pista generada se agrega a la misma cola que la originó.
+Se mantienen tres colas independientes en lugar de una única cola de prioridad automática. Esta decisión hace explícito el requisito de atender primero todas las pistas de P1, después las de P2 y finalmente las de P3, conservando el orden de llegada dentro de cada grupo. Una pista generada se agrega a la cola que corresponde a la prioridad de su pista de origen.
 
-La equivalencia no significa que las dos implementaciones utilicen el mismo código interno. Significa que, para la misma entrada, deben observar el mismo recorrido, las mismas operaciones relevantes, el mismo primer error y el mismo mensaje final. La comparación se realiza sobre las trazas producidas por los validadores.
+La equivalencia entre las implementaciones no significa que compartan la misma estructura interna. Significa que, con la misma entrada, producen el mismo recorrido observable, el mismo primer error, el mismo orden de eventos y el mismo mensaje. La clase `Main` elimina el encabezado específico de cada versión y compara el resto de las trazas.
 
-## 5. Lectura, validación y manejo de errores
+## 5. Lectura y validación de archivos
 
-La clase `LectorFichas` lee todas las líneas con codificación UTF-8. Comprueba que exista el encabezado esperado y que cada registro tenga cinco campos. Después valida que el ID no esté vacío ni repetido, que el tipo pertenezca a los valores admitidos, que la prioridad sea válida y que el valor e instrucción correspondan al tipo.
+La clase `LectorFichas` lee el archivo con codificación UTF-8. Primero comprueba que exista el encabezado esperado. Después divide cada registro en cinco campos, conserva los campos vacíos para detectar líneas incompletas y valida el identificador, el tipo, la prioridad, el valor y la instrucción.
 
-La lectura conserva la posición de la ficha y el número de línea física. Los errores de formato se informan antes de iniciar las fases de lista, pila y colas, porque no es posible procesar de forma confiable un registro que no cumple la gramática de entrada.
+Los identificadores se registran durante la lectura para detectar duplicados. La prioridad se convierte a entero y se comprueba que esté en el intervalo permitido. El valor se valida según el tipo de ficha: las aperturas y cierres solo admiten sus tres símbolos correspondientes; una ficha `LETRA` debe contener un carácter alfabético; una ficha `PISTA` debe utilizar `-`. También se comprueba la forma de las instrucciones y que los tipos que no son pista utilicen `-`.
 
-Durante la validación de delimitadores, cada apertura se apila. Ante un cierre se consulta el tope. Si la pila está vacía, el cierre no tiene apertura correspondiente. Si el símbolo del tope no es la apertura esperada, se informa el cruce de delimitadores y se detiene la ejecución. Si al terminar quedan aperturas en la pila, el archivo también es inválido.
+La lectura rechaza los archivos vacíos, los encabezados incorrectos, las líneas que no contienen cinco campos y los archivos que no contienen fichas. Los errores incluyen la línea física y, cuando corresponde, el ID de la ficha. Esta validación evita que las estructuras reciban registros que no cumplen el formato definido.
 
-Las pistas solo se procesan después de una validación correcta de delimitadores. En la resolución se verifica que cada referencia exista, que su tipo sea `LETRA` y que no se haya revelado anteriormente. Al encontrar el primer error de una pista, no se atienden las siguientes y se conserva la traza de lo ejecutado hasta ese punto.
+Durante la validación de delimitadores, cada apertura se apila y cada cierre se compara con el tope. Si hay un cierre sin apertura, un cruce de delimitadores o una apertura sobrante, se informa el primer error. La resolución de pistas solo comienza si la pila queda vacía. En esta fase se comprueba que cada referencia exista, que corresponda a una ficha `LETRA` y que no haya sido revelada anteriormente.
 
-## 6. Recorrido del ejemplo principal
+## 6. Ejecución del ejemplo principal
 
-El archivo `datos/ejemplo_valido.txt` contiene las fichas F01 a F09. La secuencia de delimitadores abre primero paréntesis y luego corchetes. Más adelante cierra corchetes y finalmente paréntesis. Por lo tanto, el orden LIFO permite retirar primero `[` y después `(`.
+El archivo `datos/ejemplo_valido.txt` contiene las fichas F01 a F09. Las fichas F01 y F03 abren paréntesis y corchetes, respectivamente. Más adelante F05 cierra el corchete y F07 cierra el paréntesis. La pila permite verificar el orden correcto: primero se retira `[` y después `(`. Una vez vacía la pila, el programa distribuye las pistas.
 
-Una vez que la pila queda vacía, se distribuyen las pistas. F08 pertenece a prioridad 1 y contiene `REVELAR:F02`; F09 pertenece a prioridad 2 y contiene `ENCADENAR:F04:F06`.
+La ficha F08 pertenece a prioridad 1 y contiene `REVELAR:F02`. La ficha F09 pertenece a prioridad 2 y contiene `ENCADENAR:F04:F06`. La ejecución produce la siguiente secuencia:
 
-La resolución esperada es:
-
-| Momento | Operación | Mensaje acumulado |
+| Paso | Operación | Mensaje acumulado |
 |---|---|---|
-| Atención de F08 | Revelar F02, cuyo valor es S. | S |
-| Atención de F09 | Revelar F04, cuyo valor es O. | SO |
-| Generación desde F09 | Encolar `REVELAR:F06` al final de P2. | SO |
-| Atención de la pista generada | Revelar F06, cuyo valor es L. | SOL |
+| 1 | Se atiende F08 y se revela F02, cuyo valor es S. | S |
+| 2 | Se atiende F09 y se revela F04, cuyo valor es O. | SO |
+| 3 | F09 genera y encola `REVELAR:F06` en P2. | SO |
+| 4 | Se atiende la pista generada y se revela F06, cuyo valor es L. | SOL |
 
-El resultado definido por el enunciado para el ejemplo es `SOL`. La ejecución local debe confirmar que ambas versiones lo producen y que el orden de eventos coincide.
+El resultado final es `SOL`. La salida compartida de la ejecución muestra que ambas implementaciones procesan las mismas fichas, generan la misma pista y terminan con el mismo mensaje. La comparación final informa `TRAZAS EQUIVALENTES: mismo recorrido, primer error y resultado.`
 
-## 7. Archivos de prueba y cobertura requerida
+## 7. Pruebas y cobertura
 
-En el repositorio existen tres archivos de entrada persistentes:
+El ejecutor `pruebas.CasosPrueba` contiene 14 escenarios. Dos utilizan los archivos persistentes de ejemplo y de tres prioridades. Los demás construyen archivos temporales para provocar entradas inválidas o comprobar comportamientos concretos. Los temporales se eliminan al finalizar cada prueba.
 
-- `datos/ejemplo_valido.txt`: ejemplo con anidamiento correcto y una pista encadenada.
-- `datos/pruebas/tres_prioridades.txt`: pistas distribuidas en las prioridades 1, 2 y 3, con un orden físico distinto al orden de atención.
-- `datos/pruebas/cierre_incorrecto.txt`: modifica el cierre de F05 para producir un cruce de delimitadores.
+| N.º | Caso | Comprobación |
+|---:|---|---|
+| 1 | Ejemplo válido | Resultado `SOL` y trazas equivalentes. |
+| 2 | Tres prioridades | Resultado `SOL` y atención P1 → P2 → P3. |
+| 3 | Cierre incorrecto | Se detecta el cruce de delimitadores. |
+| 4 | Cierre sin apertura | Se rechaza el cierre que no tiene apertura. |
+| 5 | Apertura sobrante | Se detecta la apertura que queda en la pila. |
+| 6 | ID duplicado | El lector rechaza el identificador repetido. |
+| 7 | Línea incompleta | El lector exige cinco campos. |
+| 8 | Tipo inválido | Se rechaza un tipo no permitido. |
+| 9 | Prioridad fuera de rango | Se rechaza una prioridad distinta de 1, 2 o 3. |
+| 10 | Referencia inexistente | La pista informa que el ID no existe. |
+| 11 | Referencia que no es LETRA | La pista rechaza una referencia de otro tipo. |
+| 12 | Letra revelada dos veces | Se evita agregar dos veces la misma ficha al mensaje. |
+| 13 | FIFO de igual prioridad | Se conserva el orden de llegada. |
+| 14 | Encadenamiento con pista pendiente | La pista generada se atiende detrás de la que ya esperaba. |
 
-El ejecutor `pruebas.CasosPrueba` amplía la cobertura mediante casos temporales que crea y elimina durante la ejecución. La suite comprueba:
+En los casos de ejecución se comprueba el resultado o error esperado y se comparan las trazas de ambas implementaciones. En los casos de formato inválido se comprueba que el lector rechace el archivo antes de ejecutar las estructuras.
 
-1. Ejemplo válido, con resultado `SOL` y trazas equivalentes.
-2. Atención de las tres prioridades, con resultado `SOL`.
-3. Cierre incorrecto.
-4. Cierre sin apertura.
-5. Apertura sobrante.
-6. Identificador duplicado.
-7. Línea incompleta.
-8. Tipo inválido.
-9. Prioridad fuera del rango 1–3.
-10. Referencia inexistente.
-11. Referencia a una ficha que no es `LETRA`.
-12. Intento de revelar una letra dos veces.
-13. FIFO entre pistas de igual prioridad.
-14. Encadenamiento detrás de una pista que ya estaba pendiente en la cola.
+## 8. Compilación y reproducibilidad
 
-Para los casos de ejecución, el programa compara las trazas de las dos implementaciones, además del primer error o el mensaje final según corresponda. Los casos de formato inválido comprueban que el lector rechace la entrada antes de iniciar el procesamiento.
-
-## 8. Compilación, ejecución y reproducibilidad
-
-La verificación local se realizó desde PowerShell, en la raíz del repositorio. Primero se actualizó la rama de trabajo y se eliminó la carpeta de compilación anterior. Después se compiló todo el código fuente:
+La verificación se realizó desde PowerShell en la carpeta raíz del proyecto. Para compilar el programa integrado se utiliza:
 
 ```powershell
-git pull origin desarrollo
-Remove-Item -Recurse -Force out
 New-Item -ItemType Directory -Force out | Out-Null
 $archivos = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName }
 javac -encoding UTF-8 -d out $archivos
 ```
 
-La compilación terminó sin mostrar errores. La suite se ejecutó con:
+La ejecución de la suite se realiza con:
 
 ```powershell
 java -cp out pruebas.CasosPrueba
 ```
 
-El resultado final fue:
+El resultado final comunicado fue:
 
 ```text
 Pruebas terminadas: 14/14 correctas.
 ```
 
-A continuación se ejecutó el ejemplo principal:
+Para ejecutar el ejemplo principal:
 
 ```powershell
 java -cp out app.Main datos/ejemplo_valido.txt
 ```
 
-Las dos implementaciones leyeron nueve fichas, validaron correctamente los delimitadores, atendieron F08 en prioridad 1 y F09 en prioridad 2, y procesaron la pista generada `GENERADA-F09-F06`. Ambas construyeron el mensaje `SOL`. La comparación final mostró:
+La salida compartida contiene nueve fichas leídas correctamente, la traza manual, la traza de `java.util`, el resultado `SOL` en ambas y la comparación de trazas equivalentes. También se ejecutaron los archivos de prueba de prioridades y cierre incorrecto. La compilación manual y la compilación de la versión con biblioteca se realizaron de forma independiente para obtener sus respectivas evidencias.
 
-```text
-RESULTADO: SOL
-TRAZAS EQUIVALENTES: mismo recorrido, primer error y resultado.
-```
+Los directorios `out`, `out-manual` y `out-javautil` almacenan archivos compilados `.class`. Pueden eliminarse y regenerarse con los comandos de compilación; por eso se excluyen del control de versiones.
 
-Estos resultados corresponden a las salidas de consola compartidas durante la verificación local del 9 de noviembre de 2026. No sustituyen las capturas que deben adjuntarse a la entrega.
+## 9. Evidencias de ejecución
 
-## 9. Estado de validación y evidencias
+Las capturas se encuentran incorporadas en `evidencias/`. El archivo `evidencias/README.md` contiene el índice de imágenes, los comandos principales y la explicación de lo que demuestra cada grupo. Algunas ejecuciones se dividieron en dos imágenes para conservar la legibilidad de la salida completa.
 
-**Validación funcional local: 14/14 pruebas correctas.**
+El conjunto de evidencias cubre los requisitos solicitados:
 
-La evidencia de consola confirma tres resultados:
-
-- **Compilación:** todos los archivos Java se compilaron juntos sin errores.
-- **Pruebas automatizadas:** los 14 escenarios terminaron correctamente.
-- **Ejecución integral:** el archivo principal produjo `SOL` en ambas versiones y la comparación confirmó trazas equivalentes.
-
-La suite también comprobó los errores de cierre sin apertura y apertura sobrante. En estos casos, ambas versiones identifican el error durante la fase de pila y no continúan con la resolución de pistas. Los errores de estructura del archivo, como ID duplicado o línea incompleta, se rechazan en la lectura.
-
-La carpeta `evidencias` está preparada, pero las capturas todavía deben guardarse desde el computador donde se realizaron las pruebas. Se recomienda conservar imágenes legibles que muestren el comando y su salida completa para:
-
-1. Compilación limpia.
-2. Ejecución de las 14 pruebas.
-3. Recorrido de la lista enlazada.
-4. Operaciones de apilar, consultar y retirar.
-5. Atención de las tres prioridades.
-6. Mensaje final `SOL` y pista generada.
-7. Error de delimitadores y detención del procesamiento.
+1. Compilación de la implementación manual.
+2. Compilación de la implementación con biblioteca.
+3. Recorrido de la lista.
+4. Operaciones de la pila.
+5. Orden de atención de las colas por prioridad.
+6. Mensaje final `SOL` y procesamiento de la pista generada.
+7. Error de delimitadores en F05 y detención del procesamiento.
 8. Comparación de las dos implementaciones.
 
-No se incluyen imágenes simuladas. Hasta que se agreguen los archivos, las evidencias gráficas deben considerarse pendientes aunque los resultados de consola ya hayan sido comprobados.
+La evidencia 07 muestra tanto el encadenamiento como la comparación final. En ella se observa la atención de F09, la generación y encolado de `REVELAR:F06`, la atención de la pista generada, el resultado `SOL` y el mensaje de trazas equivalentes. Por tanto, no se requiere una captura adicional para la comparación.
 
-## 10. Conclusiones y trabajo pendiente
+Las imágenes son registros de las ejecuciones realizadas en la terminal. No se han generado capturas simuladas. El índice permite localizar cada archivo y relacionarlo con el requisito correspondiente.
 
-El diseño separa lectura, estructuras, validación y ejecución. La versión manual demuestra las operaciones de lista enlazada, pila y tres colas FIFO mediante nodos propios. La versión con `java.util` permite contrastar el comportamiento utilizando las colecciones de Java. La pista encadenada es el caso clave para demostrar que una cola puede recibir trabajo nuevo y seguir respetando el orden FIFO.
+## 10. Conclusiones
 
-La validación funcional está completada para los 14 escenarios implementados. Antes de cerrar la entrega, todavía deben completarse estos puntos:
+La solución permite observar cómo distintas estructuras resuelven responsabilidades diferentes dentro de un mismo algoritmo. La lista enlazada conserva el orden de las fichas y permite buscarlas por ID. La pila valida delimitadores mediante el comportamiento LIFO. Las tres colas aplican prioridad entre grupos y FIFO dentro de cada grupo. El encadenamiento demuestra que una operación puede generar trabajo nuevo sin alterar el orden de llegada de las pistas que ya estaban pendientes.
 
-1. Guardar las capturas reales de compilación, suite y ejecución en `evidencias/`.
-2. Revisar la paginación del informe al exportarlo para confirmar que cumple la extensión de 6 a 8 páginas solicitada.
-3. Preparar la sustentación individual, especialmente la explicación de LIFO, FIFO, selección de prioridades, búsquedas por ID y encadenamiento.
-4. Revisar el proyecto completo frente a la rúbrica y comprobar que los archivos de entrega estén incluidos.
+La implementación con `java.util` sirve como contraste funcional de la versión manual. La comparación de trazas permite comprobar que ambas procesan la misma entrada y producen los mismos eventos observables, errores y resultados. La suite automatizada cubre entradas válidas, errores de formato, delimitadores, referencias, repetición de letras, prioridades y encadenamiento.
 
-La documentación debe mantenerse sincronizada con el comportamiento final del programa. La evidencia de una ejecución no sustituye la explicación del algoritmo: durante la sustentación se debe poder justificar por qué la pila es LIFO, por qué cada cola es FIFO, cómo se seleccionan las prioridades y cómo se inserta y procesa una pista generada.
+La verificación local comunicada el 12 de noviembre de 2026 registró compilación completa sin errores, 14 de 14 pruebas correctas y el mensaje `SOL` en ambas implementaciones con trazas equivalentes. El repositorio `main` contiene el código fuente, los archivos de datos, el informe y las capturas.
+
+Para la sustentación individual es importante poder explicar con claridad la diferencia entre LIFO y FIFO, el motivo de utilizar tres colas, la búsqueda por identificador, la validación previa de delimitadores y el proceso mediante el cual una pista `ENCADENAR` crea y agrega otra pista a la misma prioridad.
 
 ---
 
-## Referencia principal
+## Referencia
 
-Enunciado del parcial: **“Construya en Java un programa que lea un archivo de fichas, compruebe que los delimitadores estén bien anidados y descifre una palabra a partir de pistas”**, documento de seis páginas entregado por el profesor. Las reglas y la lista de pruebas de este informe se basan en dicho enunciado.
+Enunciado del parcial individual **“La bóveda de los patrones”**, documento de seis páginas suministrado por el profesor. La solución, las reglas de entrada y los casos de prueba se desarrollaron tomando como referencia sus requisitos de implementación, validación y entrega.
