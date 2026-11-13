@@ -2,9 +2,6 @@ package manual;
 
 import dominio.Ficha;
 
-/**
- * Lista enlazada simple para guardar las fichas en el orden del archivo.
- */
 public final class ListaFichas {
     private Nodo<Ficha> cabeza;
     private Nodo<Ficha> cola;
@@ -48,9 +45,7 @@ public final class ListaFichas {
         return cabeza.dato;
     }
 
-    /**
-     * Devuelve la ficha que ocupa la posición indicada, comenzando en cero.
-     */
+
     public Ficha obtener(int indice) {
         if (indice < 0 || indice >= tamanio) {
             throw new IndexOutOfBoundsException("Índice fuera de la lista: " + indice);

@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-/**
- * Validador equivalente al manual, utilizando estructuras de java.util.
- */
 public final class ValidadorBiblioteca {
 
     public String ejecutar(List<Ficha> entrada) {
@@ -139,7 +136,6 @@ public final class ValidadorBiblioteca {
                         pista.getLinea()
                 );
 
-                // offer agrega la pista generada al final de la misma cola.
                 cola.offer(generada);
                 salida.append("GENERAR Y ENCOLAR P").append(prioridadActual + 1)
                         .append(": REVELAR:").append(partes[2]).append("\n");

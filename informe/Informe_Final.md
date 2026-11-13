@@ -55,11 +55,11 @@ La organización por paquetes evita mezclar la lectura del archivo con las opera
 
 La clase `ListaFichas` utiliza nodos enlazados. Mantiene una referencia a la cabeza, otra a la cola y un contador de elementos. Cuando se agrega la primera ficha, el nuevo nodo pasa a ser cabeza y cola. En las inserciones posteriores, el nodo que era cola apunta al nuevo y la referencia de cola se actualiza.
 
-La lista conserva el orden del archivo. El método de búsqueda recorre los nodos desde la cabeza y compara el identificador de cada ficha. El método de acceso por índice permite recorrer la lista y mostrar el orden de inserción. La búsqueda por ID es necesaria para resolver las instrucciones de las pistas.
+La lista conserva el orden del archivo. El método de búsqueda recorre los nodos desde la cabeza y compara el identificador de cada ficha. El método de acceso por índice permite recorrer la lista y mostrar el orden de inserción. La búsqueda por ID es necesaria para resolver las instrucciones de las pistas. La misma estructura permite registrar las fichas LETRA que ya fueron reveladas y detectar intentos repetidos sin recurrir a un conjunto de `java.util` en el algoritmo manual.
 
 ### 3.2 Pila de símbolos
 
-La clase `PilaSimbolos` se implementa mediante nodos enlazados y una referencia al tope. La operación de apilar coloca un nuevo nodo delante del anterior tope. Consultar devuelve el símbolo superior sin retirarlo. Retirar mueve la referencia al nodo siguiente y devuelve el símbolo que estaba arriba.
+La clase `PilaSimbolos` se implementa mediante nodos enlazados y una referencia al tope. Cada nodo conserva la ficha de apertura, no solo el carácter, para mantener disponibles su identificador y línea física si queda una apertura sin cerrar. La operación de apilar coloca un nuevo nodo delante del anterior tope. Consultar devuelve la ficha superior sin retirarla. Retirar mueve la referencia al nodo siguiente y devuelve la ficha que estaba arriba; el validador compara su campo `valor` con el cierre esperado.
 
 La pila es LIFO: el último delimitador de apertura que entra debe ser el primero que salga. Esta propiedad permite validar anidamientos. Por ejemplo, después de apilar `(` y luego `[`, el siguiente cierre correcto debe ser `]`. Un cierre `)` en ese momento no puede retirar la apertura exterior porque la apertura cuadrada sigue en el tope.
 

@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Lee y valida el formato del archivo de fichas. */
 public final class LectorFichas {
     private static final String ENCABEZADO = "id|tipo|valor|prioridad|instruccion";
 

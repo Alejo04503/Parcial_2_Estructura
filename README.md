@@ -34,8 +34,7 @@ No se necesita instalar dependencias externas.
 | `src/app` | Lector del archivo y clase principal. |
 | `src/pruebas` | Ejecutor de casos de prueba. |
 | `datos` | Archivo de ejemplo y archivos de prueba. |
-| `docs` | Plan de trabajo. |
-| `informe` | Informe del proyecto. |
+| `informe` | Informe técnico final del proyecto. |
 | `evidencias` | Capturas reales de compilación y ejecución. |
 
 ## 4. Formato del archivo de entrada
@@ -80,7 +79,23 @@ El primer error detiene las fases posteriores y conserva los eventos producidos 
 
 Abre PowerShell en la carpeta raíz del repositorio.
 
-### Compilar las dos implementaciones
+### Compilar la implementación manual
+
+```powershell
+New-Item -ItemType Directory -Force out-manual | Out-Null
+$archivos = @("src/dominio/Ficha.java", "src/dominio/TipoFicha.java") + (Get-ChildItem src/manual -Filter *.java | ForEach-Object { $_.FullName })
+javac -encoding UTF-8 -d out-manual $archivos
+```
+
+### Compilar la implementación con `java.util`
+
+```powershell
+New-Item -ItemType Directory -Force out-biblioteca | Out-Null
+$archivos = @("src/dominio/Ficha.java", "src/dominio/TipoFicha.java") + (Get-ChildItem src/biblioteca -Filter *.java | ForEach-Object { $_.FullName })
+javac -encoding UTF-8 -d out-biblioteca $archivos
+```
+
+### Compilar el proyecto integrado
 
 ```powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -88,7 +103,7 @@ $archivos = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.Full
 javac -encoding UTF-8 -d out $archivos
 ```
 
-Si el comando termina sin mostrar errores, la compilación fue correcta. Si aparecen mensajes, conserva la salida completa para identificar el archivo y la línea que fallaron.
+Los dos primeros comandos permiten obtener evidencias de compilación independientes. El tercero compila todas las clases para ejecutar el programa completo. Si un comando termina sin mostrar errores, la compilación correspondiente fue correcta.
 
 ### Ejecutar el ejemplo principal
 

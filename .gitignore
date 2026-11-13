@@ -1,5 +1,7 @@
 # Java compilado
 out/
+out-manual/
+out-biblioteca/
 bin/
 *.class
 *.jar

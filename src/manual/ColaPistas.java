@@ -1,31 +1,19 @@
 package manual;
 
-/**
- * Tres colas FIFO independientes. La prioridad 1 se atiende antes que 2 y 3.
- */
 public final class ColaPistas<T> {
-    private static final class NodoCola<E> {
-        E dato;
-        NodoCola<E> siguiente;
-
-        NodoCola(E dato) {
-            this.dato = dato;
-        }
-    }
-
-    private final NodoCola<T>[] frentes;
-    private final NodoCola<T>[] finales;
+    private final Nodo<T>[] frentes;
+    private final Nodo<T>[] finales;
 
     @SuppressWarnings("unchecked")
     public ColaPistas() {
-        frentes = (NodoCola<T>[]) new NodoCola[3];
-        finales = (NodoCola<T>[]) new NodoCola[3];
+        frentes = (Nodo<T>[]) new Nodo<?>[3];
+        finales = (Nodo<T>[]) new Nodo<?>[3];
     }
 
     public void encolar(T pista, int prioridad) {
         validarPrioridad(prioridad);
         int indice = prioridad - 1;
-        NodoCola<T> nuevo = new NodoCola<>(pista);
+        Nodo<T> nuevo = new Nodo<>(pista);
 
         if (frentes[indice] == null) {
             frentes[indice] = nuevo;

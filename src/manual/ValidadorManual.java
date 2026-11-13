@@ -2,9 +2,7 @@ package manual;
 
 import dominio.Ficha;
 import dominio.TipoFicha;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public final class ValidadorManual {
     public String ejecutar(List<Ficha> entrada) {
@@ -70,7 +68,7 @@ public final class ValidadorManual {
         }
 
         salida.append("FASE 4. Resolver pistas\n");
-        Set<String> reveladas = new HashSet<>();
+        ListaFichas reveladas = new ListaFichas();
         StringBuilder mensaje = new StringBuilder();
         while (!colas.estaVacia()) {
             Ficha pista = colas.desencolar();
@@ -104,7 +102,7 @@ public final class ValidadorManual {
         return salida.toString();
     }
 
-    private String revelar(String id, ListaFichas lista, Set<String> reveladas,
+    private String revelar(String id, ListaFichas lista, ListaFichas reveladas,
                            StringBuilder mensaje, StringBuilder salida, Ficha pista) {
         Ficha ficha = lista.buscar(id);
         salida.append("BUSCAR ").append(id).append(": ")
@@ -113,9 +111,10 @@ public final class ValidadorManual {
         if (ficha.getTipo() != TipoFicha.LETRA) {
             return "ERROR en " + pista.getId() + ": la referencia " + id + " no apunta a una ficha LETRA.\n";
         }
-        if (!reveladas.add(id)) {
+        if (reveladas.buscar(id) != null) {
             return "ERROR en " + pista.getId() + ": la letra " + id + " ya fue revelada.\n";
         }
+        reveladas.agregar(ficha);
         mensaje.append(ficha.getValor());
         salida.append("REVELAR ").append(id).append(" = ").append(ficha.getValor()).append("\n");
         return null;

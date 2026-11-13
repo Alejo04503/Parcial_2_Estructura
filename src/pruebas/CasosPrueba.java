@@ -9,10 +9,6 @@ import java.nio.file.Path;
 import java.util.List;
 import manual.ValidadorManual;
 
-/**
- * Pruebas de lectura, estructuras y equivalencia de las dos implementaciones.
- * Los archivos temporales se eliminan al terminar cada caso.
- */
 public final class CasosPrueba {
     private static int aprobadas;
     private static int total;
