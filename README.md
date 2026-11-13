@@ -2,7 +2,9 @@
 
 **Proyecto individual de Estructuras de Datos**  
 **Lenguaje:** Java  
-**Ramas de trabajo:** `main` (base estable) y `desarrollo` (implementación)
+**Rama de entrega:** `main`  
+**Rama de trabajo:** `desarrollo`  
+**Estado:** implementación, pruebas y evidencias incorporadas al repositorio.
 
 ## 1. Descripción
 
@@ -10,10 +12,10 @@ El programa lee un archivo de fichas de texto UTF-8, valida que los delimitadore
 
 Se entregan dos implementaciones equivalentes:
 
-- **Manual:** lista enlazada, pila y tres colas FIFO desarrolladas para el proyecto.
-- **Java Collections (`java.util`):** lista, pila y colas implementadas con las estructuras de biblioteca.
+- **Manual:** lista enlazada, pila y tres colas FIFO desarrolladas para el proyecto mediante nodos propios.
+- **Java Collections (`java.util`):** lista, pila y colas implementadas con estructuras de biblioteca.
 
-Las dos versiones reciben las mismas fichas y generan trazas para comparar el mensaje, el primer error y el orden de los eventos observables.
+Las dos versiones reciben las mismas fichas y producen trazas comparables. La comparación verifica el recorrido, el primer error y el resultado.
 
 ## 2. Requisitos
 
@@ -22,20 +24,20 @@ Las dos versiones reciben las mismas fichas y generan trazas para comparar el me
 - Visual Studio Code, NetBeans u otro entorno Java.
 - Terminal PowerShell o CMD.
 
-No se necesita instalar dependencias externas.
+No se necesitan dependencias externas.
 
 ## 3. Estructura del repositorio
 
 | Ruta | Contenido |
 |---|---|
-| `src/dominio` | Modelo `Ficha` y enumeración `TipoFicha` conservados de la base del profesor. |
+| `src/dominio` | Modelo `Ficha` y enumeración `TipoFicha`. |
 | `src/manual` | Nodo, lista enlazada, pila, colas por prioridad y validador manual. |
-| `src/biblioteca` | Validador equivalente con `java.util`. |
+| `src/biblioteca` | Validador equivalente con colecciones `java.util`. |
 | `src/app` | Lector del archivo y clase principal. |
-| `src/pruebas` | Ejecutor de casos de prueba. |
-| `datos` | Archivo de ejemplo y archivos de prueba. |
-| `informe` | Informe técnico final del proyecto. |
-| `evidencias` | Capturas reales de compilación y ejecución. |
+| `src/pruebas` | Ejecutor de los 14 casos de prueba. |
+| `datos` | Archivo de ejemplo y archivos de prueba persistentes. |
+| `informe` | Informe técnico del proyecto. |
+| `evidencias` | Capturas de compilación, ejecución y validación. |
 
 ## 4. Formato del archivo de entrada
 
@@ -51,35 +53,35 @@ Cada línea posterior contiene cinco campos separados por `|`:
 |---|---|
 | `id` | Identificador no vacío y único. |
 | `tipo` | `ABRE`, `CIERRA`, `LETRA` o `PISTA`. |
-| `valor` | `ABRE`: `(`, `[` o `{`; `CIERRA`: `)`, `]` o `}`; `LETRA`: una letra; `PISTA`: `-`. |
-| `prioridad` | Entero 1, 2 o 3. La prioridad se utiliza para las fichas `PISTA`. |
+| `valor` | Para `ABRE`: `(`, `[` o `{`; para `CIERRA`: `)`, `]` o `}`; para `LETRA`: una letra; para `PISTA`: `-`. |
+| `prioridad` | Entero entre 1 y 3. |
 | `instruccion` | Para `PISTA`: `REVELAR:id` o `ENCADENAR:id1:id2`. Para otros tipos: `-`. |
 
-La posición corresponde al orden de lectura de la ficha, empezando en 1. La línea física es el número de línea real dentro del archivo, contando el encabezado.
+La posición se cuenta desde 1 en el orden de lectura. La línea física corresponde al número real de línea del archivo, incluido el encabezado.
 
-### Significado de las instrucciones
+### Instrucciones de las pistas
 
 - `REVELAR:id`: busca la ficha indicada y agrega su letra al mensaje.
-- `ENCADENAR:id1:id2`: revela primero la letra de `id1` y crea una nueva pista `REVELAR:id2`, que se agrega al final de la cola de la misma prioridad.
-- Cada ficha de tipo `LETRA` solo puede revelarse una vez.
+- `ENCADENAR:id1:id2`: revela primero la letra de `id1` y genera una nueva pista `REVELAR:id2`, que se agrega al final de la cola de la misma prioridad.
+- Una ficha de tipo `LETRA` solo puede revelarse una vez.
 - Una referencia inexistente o que no apunte a una ficha `LETRA` produce un error.
 
 ## 5. Flujo del algoritmo
 
-1. **Lectura y formato.** Se comprueban encabezado, cantidad de campos, identificadores, tipo, valor, prioridad e instrucción. Se conserva posición y línea física.
-2. **Lista enlazada manual.** Se insertan todas las fichas en orden de archivo. Se muestra el recorrido y las búsquedas de letras se realizan por ID.
-3. **Validación con pila.** Cada apertura se apila. Al encontrar un cierre, se consulta el tope y solo se retira si es la pareja correcta. La pila debe terminar vacía.
-4. **Distribución de pistas.** Solo si la pila es válida, se encolan las pistas en tres colas FIFO independientes.
-5. **Resolución.** Se atiende primero prioridad 1, después 2 y después 3. Dentro de cada prioridad se conserva FIFO. Las pistas generadas se agregan al final de su cola.
-6. **Comparación.** Se ejecutan las versiones manual y `java.util` sobre la misma entrada y se comparan sus trazas.
+1. **Lectura y formato:** se comprueban encabezado, campos, identificadores, tipos, valores, prioridades e instrucciones.
+2. **Lista enlazada:** se insertan las fichas en el orden del archivo y se muestra el recorrido.
+3. **Pila:** se validan los delimitadores con comportamiento LIFO. Solo se retira una apertura cuando coincide con el cierre esperado.
+4. **Colas:** si los delimitadores son correctos, las pistas se distribuyen en tres colas FIFO.
+5. **Resolución:** se atiende primero prioridad 1, luego 2 y finalmente 3. Las pistas generadas se agregan al final de su cola.
+6. **Comparación:** se ejecutan ambas implementaciones con la misma entrada y se comparan sus trazas.
 
-El primer error detiene las fases posteriores y conserva los eventos producidos hasta ese momento.
+El procesamiento se detiene ante el primer error. Si la lectura o la validación de delimitadores falla, no se resuelven las pistas.
 
 ## 6. Compilación en Windows
 
 Abre PowerShell en la carpeta raíz del repositorio.
 
-### Compilar la implementación manual
+### Compilación manual
 
 ```powershell
 New-Item -ItemType Directory -Force out-manual | Out-Null
@@ -87,15 +89,15 @@ $archivos = @("src/dominio/Ficha.java", "src/dominio/TipoFicha.java") + (Get-Chi
 javac -encoding UTF-8 -d out-manual $archivos
 ```
 
-### Compilar la implementación con `java.util`
+### Compilación con java.util
 
 ```powershell
-New-Item -ItemType Directory -Force out-biblioteca | Out-Null
+New-Item -ItemType Directory -Force out-javautil | Out-Null
 $archivos = @("src/dominio/Ficha.java", "src/dominio/TipoFicha.java") + (Get-ChildItem src/biblioteca -Filter *.java | ForEach-Object { $_.FullName })
-javac -encoding UTF-8 -d out-biblioteca $archivos
+javac -encoding UTF-8 -d out-javautil $archivos
 ```
 
-### Compilar el proyecto integrado
+### Compilación integrada
 
 ```powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -103,67 +105,67 @@ $archivos = Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.Full
 javac -encoding UTF-8 -d out $archivos
 ```
 
-Los dos primeros comandos permiten obtener evidencias de compilación independientes. El tercero compila todas las clases para ejecutar el programa completo. Si un comando termina sin mostrar errores, la compilación correspondiente fue correcta.
+Los directorios `out`, `out-manual` y `out-javautil` contienen archivos compilados `.class`. Son generables y están excluidos del repositorio mediante `.gitignore`; no forman parte de la entrega del código fuente.
 
-### Ejecutar el ejemplo principal
+### Ejecutar el ejemplo
 
 ```powershell
 java -cp out app.Main datos/ejemplo_valido.txt
 ```
 
-El ejemplo debe producir el mensaje `SOL`. El programa muestra primero la traza manual, después la traza `java.util` y finalmente el resultado de compararlas.
+Resultado esperado: `SOL` en ambas versiones y el mensaje `TRAZAS EQUIVALENTES`.
 
-### Ejecutar la suite de pruebas
+### Ejecutar las pruebas
 
 ```powershell
 java -cp out pruebas.CasosPrueba
 ```
 
-El ejecutor contiene 14 casos que cubren entradas válidas, errores de delimitadores y formato, referencias de pistas, prevención de letras repetidas, orden FIFO y encadenamiento. En la verificación local del 9 de noviembre de 2026, los 14 casos finalizaron correctamente (`14/14`).
+La suite contiene 14 escenarios. En la verificación local realizada el 12 de noviembre de 2026, el resultado comunicado fue **14/14 pruebas correctas**.
 
-## 7. Archivos de prueba disponibles
+## 7. Archivos de prueba
 
-| Archivo | Propósito | Resultado esperado según el diseño |
+| Archivo | Propósito | Resultado esperado |
 |---|---|---|
 | `datos/ejemplo_valido.txt` | Ejemplo completo con pista encadenada. | Mensaje `SOL`. |
 | `datos/pruebas/tres_prioridades.txt` | Comprueba atención P1 → P2 → P3 aunque el orden físico sea distinto. | Mensaje `SOL`. |
-| `datos/pruebas/cierre_incorrecto.txt` | Cambia el cierre de F05 para provocar un cruce de delimitadores. | Error en línea física 6, ficha F05; no se ejecutan pistas. |
+| `datos/pruebas/cierre_incorrecto.txt` | Provoca un cruce de delimitadores en F05. | Error en línea física 6, ficha F05; no se atienden pistas. |
 
-Los resultados de esta tabla son expectativas del caso de prueba. La aprobación efectiva debe registrarse después de ejecutar el programa.
+La suite automatizada genera archivos temporales para los casos adicionales y los elimina al terminar.
 
 ## 8. Cobertura de pruebas
 
-La suite `pruebas.CasosPrueba` ejecuta y comprueba los siguientes escenarios:
+Los 14 casos incluidos comprueban:
 
-- Cierre sin apertura y apertura sobrante.
-- ID duplicado, línea incompleta, tipo inválido y prioridad fuera del rango 1–3.
-- Referencia inexistente y referencia a una ficha que no sea `LETRA`.
-- Intento de revelar dos veces la misma letra.
-- Dos pistas de una misma prioridad para comprobar FIFO.
-- Una pista `ENCADENAR` que agregue una nueva pista a una cola que todavía contiene elementos.
-- Comparación del mensaje, primer error y orden de eventos entre las dos versiones.
+1. Ejemplo válido: resultado `SOL` y trazas equivalentes.
+2. Tres prioridades: resultado `SOL` y orden P1 → P2 → P3.
+3. Cierre incorrecto.
+4. Cierre sin apertura.
+5. Apertura sobrante.
+6. Identificador duplicado.
+7. Línea incompleta.
+8. Tipo inválido.
+9. Prioridad fuera del rango 1–3.
+10. Referencia inexistente.
+11. Referencia que no corresponde a una ficha `LETRA`.
+12. Intento de revelar una letra dos veces.
+13. FIFO entre pistas de igual prioridad.
+14. Encadenamiento detrás de una pista que ya estaba pendiente.
 
-**Resultado local registrado el 9 de noviembre de 2026:** 14/14 pruebas correctas. También se compiló el proyecto sin errores y se ejecutó `app.Main` con `datos/ejemplo_valido.txt`; ambas versiones produjeron `SOL` y la comparación indicó `TRAZAS EQUIVALENTES`.
+Los casos de ejecución comparan el comportamiento de ambas versiones. Los casos de formato inválido verifican que el lector rechace la entrada antes de iniciar el procesamiento.
 
-## 9. Evidencias de entrega
+## 9. Evidencias
 
-Guarda las capturas originales en `evidencias/`. Cada evidencia debe incluir objetivo, comando, resultado visible y una explicación breve. Se requieren capturas legibles de:
+Las capturas se encuentran en `evidencias/`. El archivo `evidencias/README.md` identifica cada imagen y explica qué requisito demuestra.
 
-1. Compilación de la implementación manual.
-2. Compilación de la implementación con biblioteca.
-3. Recorrido de la lista.
-4. Operaciones de la pila.
-5. Orden de atención de las tres colas.
-6. Mensaje final `SOL` y pista generada.
-7. Error de F05 y confirmación de que las pistas no se procesaron.
-8. Comparación de ambas implementaciones.
+El conjunto documenta compilaciones, recorrido de estructuras, suite automatizada, error de delimitadores, prioridades, encadenamiento y comparación de las dos implementaciones. Las capturas muestran ejecuciones realizadas en la terminal; no son imágenes simuladas.
 
-No se deben crear capturas simuladas ni registrar como exitosa una prueba que no se haya ejecutado.
+## 10. Estado de entrega
 
-## 10. Estado del proyecto
+La rama `main` contiene la versión de entrega. La rama `desarrollo` conserva la rama de trabajo. El código fuente, los datos, el informe y las capturas están versionados en el repositorio.
 
-La rama `desarrollo` contiene ambas implementaciones y la suite ampliada. En la verificación local del 9 de noviembre de 2026, la compilación terminó sin errores, las 14 pruebas finalizaron correctamente y el ejemplo principal produjo `SOL` en ambas versiones con trazas equivalentes.
+La verificación local comunicada el 12 de noviembre de 2026 incluyó compilación completa sin errores, ejecución del ejemplo principal con resultado `SOL`, comparación de trazas equivalentes y 14/14 pruebas automatizadas correctas.
 
-**Pendiente:** guardar las capturas reales en `evidencias/`, revisar la paginación final del informe y realizar la sustentación. No se deben presentar capturas simuladas ni afirmar que las evidencias gráficas están adjuntas si todavía no se han guardado.
+Antes de entregar, exporta `informe/Informe_Final.md` a PDF y comprueba que la paginación final cumpla la extensión de 6 a 8 páginas solicitada por el profesor. También prepara la sustentación individual: explica la lista enlazada, el comportamiento LIFO de la pila, el FIFO de cada cola, la selección de prioridades y la generación de pistas.
 
-Consulta `informe/Informe_Final.md` para el detalle técnico y el registro de validación.
+Consulta el informe técnico para el detalle del diseño, las decisiones de implementación, las pruebas y sus resultados.
