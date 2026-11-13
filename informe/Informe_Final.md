@@ -3,8 +3,8 @@
 **Asignatura:** Estructuras de Datos  
 **Modalidad:** Trabajo individual  
 **Lenguaje:** Java  
-**Estudiante:** [Escribe tu nombre completo]  
-**Docente:** [Escribe el nombre del docente]  
+**Estudiante:** Alejandro Ruiz Ordoñez  
+**Docente:** Javier enrique reyes herazo
 **Fecha:** 12 de noviembre de 2026  
 **Repositorio:** [Alejo04503/Parcial_2_Estructura](https://github.com/Alejo04503/Parcial_2_Estructura)
 
