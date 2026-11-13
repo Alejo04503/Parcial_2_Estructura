@@ -166,6 +166,6 @@ La rama `main` contiene la versión de entrega. La rama `desarrollo` conserva la
 
 La verificación local comunicada el 12 de noviembre de 2026 incluyó compilación completa sin errores, ejecución del ejemplo principal con resultado `SOL`, comparación de trazas equivalentes y 14/14 pruebas automatizadas correctas.
 
-Antes de entregar, exporta `informe/Informe_Final.md` a PDF y comprueba que la paginación final cumpla la extensión de 6 a 8 páginas solicitada por el profesor. También prepara la sustentación individual: explica la lista enlazada, el comportamiento LIFO de la pila, el FIFO de cada cola, la selección de prioridades y la generación de pistas.
+El informe técnico final se encuentra en `informe/Informe_Final.pdf`. Contiene la descripción del diseño, las estructuras implementadas, las pruebas realizadas y sus resultados. Para la sustentación individual, explica la lista enlazada, el comportamiento LIFO de la pila, el FIFO de cada cola, la selección de prioridades y la generación de pistas.
 
 Consulta el informe técnico para el detalle del diseño, las decisiones de implementación, las pruebas y sus resultados.
